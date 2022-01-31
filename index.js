@@ -512,31 +512,44 @@ ZWayServerAccessory.prototype = {
             case "thermostat":
                 services.push(new Service.Thermostat(vdev.metrics.title, vdev.id));
                 break;
-            case "switchBinary":
-                if(this.platform.getTagValue(vdev, "Service.Type") === "Lightbulb"){
-                    services.push(new Service.Lightbulb(vdev.metrics.title, vdev.id));
-                } else if(this.platform.getTagValue(vdev, "Service.Type") === "Outlet"){
-                    services.push(new Service.Outlet(vdev.metrics.title, vdev.id));
-                } else if(this.platform.getTagValue(vdev, "Service.Type") === "WindowCovering"){
-                    services.push(new Service.WindowCovering(vdev.metrics.title, vdev.id));
-                } else {
-                    services.push(new Service.Switch(vdev.metrics.title, vdev.id));
-                }
-                break;
-            case "switchBinary.switch":
-              services.push(new Service.Switch(vdev.metrics.title, vdev.id));
-              break;
+                case "switchBinary.switch":
+                case "switchBinary.power_switch_binary":
+                case "switchBinary":
+                    if (this.platform.getTagValue(vdev, "Service.Type") === "Lightbulb" || vdev.metrics.title.toLowerCase().includes("light") || vdev.metrics.title.toLowerCase().includes("chandelier")) {
+                        services.push(new Service.Lightbulb(vdev.metrics.title, vdev.id));
+                    } 
+                    else if (vdev.metrics.title.toLowerCase().includes("fan") || vdev.metrics.title.toLowerCase().includes("heater")) {
+                        services.push(new Service.Fan(vdev.metrics.title, vdev.id));
+                    }
+                    else if (this.platform.getTagValue(vdev, "Service.Type") === "Outlet") {
+                        services.push(new Service.Outlet(vdev.metrics.title, vdev.id));
+                    } else if (this.platform.getTagValue(vdev, "Service.Type") === "WindowCovering") {
+                        services.push(new Service.WindowCovering(vdev.metrics.title, vdev.id));
+                    } else {
+                        services.push(new Service.Switch(vdev.metrics.title, vdev.id));
+                    }
+                    break;
             case "switchRGBW":
             case "switchMultilevel":
-                var stype = this.platform.getTagValue(vdev, "Service.Type");
-                if(stype === "Switch"){
-                    services.push(new Service.Switch(vdev.metrics.title, vdev.id));
-                } else if(stype === "WindowCovering"){
-                    services.push(new Service.WindowCovering(vdev.metrics.title, vdev.id));
-                } else if (stype === "Fan") {
-                    services.push(new Service.Fan(vdev.metrics.title, vdev.id));
-                } else {
-                    services.push(new Service.Lightbulb(vdev.metrics.title, vdev.id));
+                // GE Fan Switch fix inspired by https://github.com/b5rt/homebridge-zway/commit/29e41819a44029f433f50c93a2401f367d3ecd10
+                if(vdev.metrics.icon === 'fan' && vdev.manufacturer === 'Jasco Products') {
+                    var fanSvc = new Service.Fan(vdev.metrics.title, vdev.id);
+                    var rotSpdChar = fanSvc.getCharacteristic(Characteristic.RotationSpeed);
+                    rotSpdChar.props.minStep = 30;
+                    rotSpdChar.props.maxValue = 90;
+                    services.push(fanSvc);
+                }
+                else {
+                    var stype = this.platform.getTagValue(vdev, "Service.Type");
+                    if(stype === "Switch"){
+                        services.push(new Service.Switch(vdev.metrics.title, vdev.id));
+                    } else if(stype === "WindowCovering"){
+                        services.push(new Service.WindowCovering(vdev.metrics.title, vdev.id));
+                    } else if (stype === "Fan") {
+                        services.push(new Service.Fan(vdev.metrics.title, vdev.id));                   
+                    } else {
+                        services.push(new Service.Lightbulb(vdev.metrics.title, vdev.id));
+                    }
                 }
                 break;
             case "switchMultilevel.blind":
