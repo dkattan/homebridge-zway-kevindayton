@@ -1,5 +1,7 @@
 # homebridge-zway
 
+The dkattan fork includes support for GE Fan Controllers and fixes the Not Supported issue with Jasco Toggle Switches and potentially other binary switches
+
 [![npm version](https://badge.fury.io/js/homebridge-zway.svg)](https://badge.fury.io/js/homebridge-zway)
 
 ...is a Homebridge module for [Z-Way Server](http://razberry.z-wave.me/index.php?id=24).
